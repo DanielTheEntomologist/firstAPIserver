@@ -2,9 +2,16 @@ import express from "express";
 import fulldb from "../db/db.mjs";
 import randomId from "../utils.mjs";
 
+import { body, validationResult } from "express-validator";
+
 const newId = () => randomId(10);
 const db = fulldb.testimonials;
 const collectionName = "testimonials";
+
+const bodyValidations = [
+  body("text").isLength({ min: 20, max: 200 }).trim().escape(),
+  body("author").isLength({ min: 5, max: 50 }).trim().escape(),
+];
 
 const itemCreator = (requestBody) => {
   const { author, text } = requestBody;
@@ -32,7 +39,11 @@ router.get(`/${collectionName}/:id`, (req, res) => {
   res.json(item);
 });
 
-router.post(`/${collectionName}`, (req, res) => {
+router.post(`/${collectionName}`, bodyValidations, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   const item = { id: newId(), ...itemCreator(req.body) };
   db.push(item);
   res.json({ message: "OK" });
@@ -43,6 +54,10 @@ router.put(`/${collectionName}/:id`, (req, res) => {
   if (!item) {
     res.status(404).json({ message: "Not found..." });
     return;
+  }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
   const modifiedItem = itemCreator(req.body);
 
