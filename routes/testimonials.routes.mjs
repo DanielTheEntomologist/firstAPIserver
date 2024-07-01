@@ -4,55 +4,60 @@ import randomId from "../utils.mjs";
 
 const newId = () => randomId(10);
 const db = fulldb.testimonials;
+const collectionName = "testimonials";
+
+const itemCreator = (requestBody) => {
+  const { author, text } = requestBody;
+  return { author: author, text: text };
+};
 
 const router = express.Router();
 
-// GET /testimonials – ma po prostu zwracać całą zawartość tablicy.
-router.get("/testimonials", (req, res) => {
+router.get(`/${collectionName}`, (req, res) => {
   res.json(db);
 });
 
-// GET /testimonials/random – zwracamy losowy element z tablicy.
-router.get("/testimonials/random", (req, res) => {
+router.get(`/${collectionName}/random`, (req, res) => {
   const ids = [...db.map((item) => item.id)];
   const randomId = ids[Math.floor(Math.random() * ids.length)];
   res.json(db.find((item) => item.id == randomId));
 });
 
-// GET /testimonials/:id – zwracamy tylko jeden element tablicy, zgodny z :id.
-router.get("/testimonials/:id", (req, res) => {
-  const testimonial = db.find((item) => item.id == req.params.id);
-  if (!testimonial) {
+router.get(`/${collectionName}/:id`, (req, res) => {
+  const item = db.find((item) => item.id == req.params.id);
+  if (!item) {
     res.status(404).json({ message: "Not found..." });
     return;
   }
-  res.json(testimonial);
+  res.json(item);
 });
 
-// POST /testimonials – dodajemy nowy element do tablicy. Możesz założyć, że body przekazywane przez klienta będzie obiektem z dwoma atrybutami author i text. Id dodawanego elementu musisz losować.
-router.post("/testimonials", (req, res) => {
-  const { author, text } = req.body;
-  const id = newId();
-  db.push({ id, author, text });
+router.post(`/${collectionName}`, (req, res) => {
+  const item = { id: newId(), ...itemCreator(req.body) };
+  db.push(item);
   res.json({ message: "OK" });
 });
-// PUT /testimonials/:id – modyfikujemy atrybuty author i text elementu tablicy o pasującym :id. Załóż, że body otrzymane w requeście będzie obiektem z atrybutami author i text.
-router.put("/testimonials/:id", (req, res) => {
-  const { author, text } = req.body;
-  const testimonial = db.find((item) => item.id == req.params.id);
-  if (!testimonial) {
+
+router.put(`/${collectionName}/:id`, (req, res) => {
+  const item = db.find((item) => item.id == req.params.id);
+  if (!item) {
     res.status(404).json({ message: "Not found..." });
     return;
   }
-  testimonial.author = author;
-  testimonial.text = text;
+  const modifiedItem = itemCreator(req.body);
+
+  // update object attributes without changing the reference
+  Object.keys(modifiedItem).forEach((key) => {
+    item[key] = modifiedItem[key];
+  });
+
   res.json({ message: "OK" });
 });
-// DELETE /testimonials/:id – usuwamy z tablicy wpis o podanym id.
-router.delete("/testimonials/:id", (req, res) => {
+
+router.delete(`/${collectionName}/:id`, (req, res) => {
   const index = db.findIndex((item) => item.id == req.params.id);
-  const testimonial = db.find((item) => item.id == req.params.id);
-  if (!testimonial) {
+  const item = db.find((item) => item.id == req.params.id);
+  if (!item) {
     res.status(404).json({ message: "Not found..." });
     return;
   }
