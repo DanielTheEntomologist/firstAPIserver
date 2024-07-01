@@ -2,6 +2,8 @@
 import express from "express";
 import path from "path";
 
+import cors from "cors";
+
 // set app and express settings
 const app = express();
 
@@ -13,6 +15,7 @@ const staticPath = path.join(__dirname, "/public");
 app.use(express.static(staticPath));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cors());
 
 app.use("*", (req, res) => {
   res.status(404);
