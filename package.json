@@ -1,0 +1,22 @@
+{
+  "name": "first-api-express-server",
+  "version": "1.0.0",
+  "description": "my first API express server",
+  "main": "server.mjs",
+  "scripts": {
+    "watch": "nodemon server.mjs",
+    "test": "npm run test"
+  },
+  "keywords": [
+    "test",
+    "codecamp"
+  ],
+  "author": "DanielTheEnthomologist",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
