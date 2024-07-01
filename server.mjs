@@ -4,6 +4,8 @@ import path from "path";
 import cors from "cors";
 
 import testimonialsRoutes from "./routes/testimonials.routes.mjs";
+import seatsRoutes from "./routes/seats.routes.mjs";
+import concertsRoutes from "./routes/concerts.routes.mjs";
 
 // set app and express settings
 const app = express();
@@ -18,9 +20,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 app.use("/api", testimonialsRoutes);
+app.use("/api", seatsRoutes);
+app.use("/api", concertsRoutes);
 
 app.use((req, res) => {
-  console.log("404");
   res.status(404).json({ message: "Not found..." });
 });
 
