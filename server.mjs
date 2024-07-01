@@ -18,7 +18,11 @@ const staticPath = path.join(__dirname, "/public");
 app.use(express.static(staticPath));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 app.use("/api", testimonialsRoutes);
 app.use("/api", seatsRoutes);
 app.use("/api", concertsRoutes);
