@@ -22,19 +22,24 @@ const bodyValidations = [
     .isInt({ min: 1, max: availableDays })
     .withMessage(
       "Day must be an integer greater than 0 and less than festival days number"
-    ),
+    )
+    .toInt(),
   body("seat")
     .isInt({ min: 1, max: availableSeats })
     .withMessage(
       "Seat must be an integer greater than 0 and no more than seats number"
-    ),
+    )
+    .toInt(),
   body("client")
     .trim() // Remove whitespace from both ends of a string
     .isLength({ min: 1 }) // Ensure 'client' is not empty
-    .withMessage("Client name is required"),
+    .withMessage("Client name is required")
+    .trim()
+    .escape(),
   body("email")
     .isEmail() // Validate the email address
-    .withMessage("Invalid email address"),
+    .withMessage("Invalid email address")
+    .normalizeEmail(),
   body("seat").custom((value, { req }) => {
     const day = req.body.day;
     const bookedCombinations = db.filter(
