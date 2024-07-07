@@ -40,16 +40,6 @@ const bodyValidations = [
     .isEmail() // Validate the email address
     .withMessage("Invalid email address")
     .normalizeEmail(),
-  body("seat").custom((value, { req }) => {
-    const day = req.body.day;
-    const bookedCombinations = db.filter(
-      (item) => item.day === day && item.seat === value
-    );
-    if (bookedCombinations.length > 0) {
-      throw new Error(`Seat ${value} is already booked on day ${day}`);
-    }
-    return true; // Validation passed
-  }),
 ];
 
 router.get(`/${collectionName}`, (req, res) => {
@@ -71,15 +61,39 @@ router.get(`/${collectionName}/:id`, (req, res) => {
   res.json(item);
 });
 
-router.post(`/${collectionName}`, bodyValidations, (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+const newSeatValidations = [
+  body("seat").custom((value, { req }) => {
+    const day = req.body.day;
+    const bookedCombinations = db.filter(
+      (item) => item.day === day && item.seat === value
+    );
+    if (bookedCombinations.length > 0) {
+      throw new Error(`The slot is already taken...`);
+    }
+    return true; // Validation passed
+  }),
+];
+
+router.post(
+  `/${collectionName}`,
+  [...bodyValidations, ...newSeatValidations],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (
+      !errors.isEmpty() &&
+      errors.message === "The slot is already taken..."
+    ) {
+      return res.status(400).json({ message: "The slot is already taken..." });
+    }
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const item = { id: newId(), ...itemCreator(req.body) };
+    db.push(item);
+    res.json({ message: "OK" });
   }
-  const item = { id: newId(), ...itemCreator(req.body) };
-  db.push(item);
-  res.json({ message: "OK" });
-});
+);
 
 router.put(`/${collectionName}/:id`, bodyValidations, (req, res) => {
   const item = db.find((item) => item.id == req.params.id);
