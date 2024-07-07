@@ -5,13 +5,37 @@ import randomId from "../utils.mjs";
 const newId = () => randomId(10);
 const db = fulldb.seats;
 const collectionName = "seats";
+import { body, validationResult } from "express-validator";
 
 const itemCreator = (requestBody) => {
   const { day, seat, client, email } = requestBody;
   return { day: day, seat: seat, client: client, email: email };
 };
 
+const availableDays = 3;
+const availableSeats = 50;
+
 const router = express.Router();
+
+const bodyValidations = [
+  body("day")
+    .isInt({ min: 1, max: availableDays })
+    .withMessage(
+      "Day must be an integer greater than 0 and less than festival days number"
+    ),
+  body("seat")
+    .isInt({ min: 1, max: availableSeats })
+    .withMessage(
+      "Seat must be an integer greater than 0 and no more than seats number"
+    ),
+  body("client")
+    .trim() // Remove whitespace from both ends of a string
+    .isLength({ min: 1 }) // Ensure 'client' is not empty
+    .withMessage("Client name is required"),
+  body("email")
+    .isEmail() // Validate the email address
+    .withMessage("Invalid email address"),
+];
 
 router.get(`/${collectionName}`, (req, res) => {
   res.json(db);
@@ -33,6 +57,10 @@ router.get(`/${collectionName}/:id`, (req, res) => {
 });
 
 router.post(`/${collectionName}`, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   const item = { id: newId(), ...itemCreator(req.body) };
   db.push(item);
   res.json({ message: "OK" });
@@ -43,6 +71,10 @@ router.put(`/${collectionName}/:id`, (req, res) => {
   if (!item) {
     res.status(404).json({ message: "Not found..." });
     return;
+  }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
   const modifiedItem = itemCreator(req.body);
 
