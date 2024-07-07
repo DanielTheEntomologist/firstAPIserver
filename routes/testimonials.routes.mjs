@@ -49,7 +49,7 @@ router.post(`/${collectionName}`, bodyValidations, (req, res) => {
   res.json({ message: "OK" });
 });
 
-router.put(`/${collectionName}/:id`, (req, res) => {
+router.put(`/${collectionName}/:id`, bodyValidations, (req, res) => {
   const item = db.find((item) => item.id == req.params.id);
   if (!item) {
     res.status(404).json({ message: "Not found..." });
