@@ -4,7 +4,7 @@
   "description": "my first API express server",
   "main": "server.mjs",
   "scripts": {
-    "start": "nodemon server.mjs",
+    "start": "node server.mjs",
     "watch": "nodemon server.mjs",
     "test": "npm run test"
   },

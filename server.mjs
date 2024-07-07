@@ -20,7 +20,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://pure-dusk-22668-c0bd376a63cc.herokuapp.com",
+    ],
   })
 );
 
