@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Progress, Alert } from "reactstrap";
 import {
@@ -8,10 +8,38 @@ import {
 } from "../../../redux/seatsRedux";
 import "./SeatChooser.scss";
 
+import { io } from "socket.io-client";
+
 const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
   const dispatch = useDispatch();
   const seats = useSelector(getSeats);
   const requests = useSelector(getRequests);
+
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const URL =
+      process.env.NODE_ENV === "production" ? undefined : "ws://localhost:8000";
+    const socket = new io(URL, {
+      transports: ["websocket"],
+      autoConnect: false,
+    });
+    setSocket(socket);
+
+    socket.connect();
+    socket.on("connect", () => {
+      console.log("connected");
+    });
+    socket.on("disconnect", () => {
+      console.log("disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, []);
 
   const reloadSeatsInterval = 120 * 1000; // in miliseconds
 

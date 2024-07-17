@@ -2,6 +2,7 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
+import { Server } from "socket.io";
 
 import testimonialsRoutes from "./routes/testimonials.routes.mjs";
 import seatsRoutes from "./routes/seats.routes.mjs";
@@ -42,6 +43,16 @@ app.use((req, res) => {
   res.status(404).json({ message: "Not found..." });
 });
 
-app.listen(process.env.PORT || 8000, () => {
+const expressServer = app.listen(process.env.PORT || 8000, () => {
   console.log("Server is running on port: 8000");
+});
+
+const io = new Server(expressServer);
+
+io.on("connection", (socket) => {
+  console.log(String(socket.id) + " connected");
+
+  socket.on("disconnect", () => {
+    console.log(String(socket.id) + " disconnected");
+  });
 });
