@@ -8,6 +8,8 @@ import testimonialsRoutes from "./routes/testimonials.routes.mjs";
 import seatsRoutes from "./routes/seats.routes.mjs";
 import concertsRoutes from "./routes/concerts.routes.mjs";
 
+import db from "./db/db.mjs";
+
 // set app and express settings
 const app = express();
 
@@ -27,6 +29,11 @@ app.use(
     ],
   })
 );
+// make io available to all routes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "/client/build")));
@@ -51,6 +58,7 @@ const io = new Server(expressServer);
 
 io.on("connection", (socket) => {
   console.log(String(socket.id) + " connected");
+  socket.emit("seatsUpdated", db.seats);
 
   socket.on("disconnect", () => {
     console.log(String(socket.id) + " disconnected");

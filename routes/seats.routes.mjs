@@ -92,6 +92,7 @@ router.post(
     const item = { id: newId(), ...itemCreator(req.body) };
     db.push(item);
     res.json({ message: "OK" });
+    req.io.emit("seatsUpdated", db);
   }
 );
 
@@ -113,6 +114,7 @@ router.put(`/${collectionName}/:id`, bodyValidations, (req, res) => {
   });
 
   res.json({ message: "OK" });
+  req.io.emit("seatsUpdated", db);
 });
 
 router.delete(`/${collectionName}/:id`, (req, res) => {
@@ -124,6 +126,7 @@ router.delete(`/${collectionName}/:id`, (req, res) => {
   }
   db.splice(index, 1);
   res.json({ message: "OK" });
+  req.io.emit("seatsUpdated", db);
 });
 
 export default router;

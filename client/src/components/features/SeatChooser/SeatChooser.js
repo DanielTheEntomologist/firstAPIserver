@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Progress, Alert } from "reactstrap";
-import {
-  getSeats,
-  loadSeatsRequest,
-  getRequests,
-} from "../../../redux/seatsRedux";
+import { Button, Alert } from "reactstrap";
+import { getSeats, loadSeats } from "../../../redux/seatsRedux";
 import "./SeatChooser.scss";
 
 import { io } from "socket.io-client";
@@ -13,7 +9,6 @@ import { io } from "socket.io-client";
 const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
   const dispatch = useDispatch();
   const seats = useSelector(getSeats);
-  const requests = useSelector(getRequests);
 
   const [socket, setSocket] = useState(null);
 
@@ -33,6 +28,9 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
     socket.on("disconnect", () => {
       console.log("disconnected");
     });
+    socket.on("seatsUpdated", (data) => {
+      dispatch(loadSeats(data));
+    });
 
     return () => {
       socket.disconnect();
@@ -41,15 +39,9 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
     };
   }, []);
 
-  const reloadSeatsInterval = 120 * 1000; // in miliseconds
-
-  useEffect(() => {
-    dispatch(loadSeatsRequest());
-    const timer = setInterval(() => {
-      dispatch(loadSeatsRequest());
-    }, reloadSeatsInterval);
-    return () => clearInterval(timer);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(loadSeatsRequest());
+  // }, []);
 
   const isTaken = (seatId) => {
     return seats.some((item) => item.seat === seatId && item.day === chosenDay);
@@ -93,15 +85,14 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
           <Button outline color="primary" /> – it's empty
         </small>
       </div>
-      {requests["LOAD_SEATS"] && requests["LOAD_SEATS"].success && (
+
+      {seats.length >= 0 && (
         <div className="seats">
           {[...Array(50)].map((x, i) => prepareSeat(i + 1))}
         </div>
       )}
-      {requests["LOAD_SEATS"] && requests["LOAD_SEATS"].pending && (
-        <Progress animated color="primary" value={50} />
-      )}
-      {requests["LOAD_SEATS"] && requests["LOAD_SEATS"].error && (
+
+      {seats.length === 0 && (
         <Alert color="warning">Couldn't load seats...</Alert>
       )}
     </div>
