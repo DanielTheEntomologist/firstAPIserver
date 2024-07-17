@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Alert } from "reactstrap";
+import { Button, Progress, Alert } from "reactstrap";
 import { getSeats, loadSeats } from "../../../redux/seatsRedux";
 import "./SeatChooser.scss";
 
 import { io } from "socket.io-client";
 
 const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
+  const numberOfSeats = 50;
+
   const dispatch = useDispatch();
   const seats = useSelector(getSeats);
 
@@ -74,6 +76,22 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
       );
   };
 
+  let takenSeats = 0;
+  for (let i = 0; i < numberOfSeats; i++) {
+    if (isTaken(i + 1)) takenSeats++;
+  }
+  const percentage = Math.round((takenSeats / numberOfSeats) * 100);
+
+  const progressColorThresholds = {
+    0: "",
+    30: "success",
+    70: "warning",
+    90: "danger",
+  };
+  const progressColor = Object.entries(progressColorThresholds)
+    .filter(([threshold, color]) => percentage >= threshold)
+    .slice(-1)[0][1];
+
   return (
     <div>
       <h3>Pick a seat</h3>
@@ -85,16 +103,27 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
           <Button outline color="primary" /> – it's empty
         </small>
       </div>
+      <div className="seats_container">
+        {seats.length >= 0 && (
+          <div className="seats">
+            {[...Array(numberOfSeats)].map((x, i) => prepareSeat(i + 1))}
+          </div>
+        )}
 
-      {seats.length >= 0 && (
-        <div className="seats">
-          {[...Array(50)].map((x, i) => prepareSeat(i + 1))}
+        {seats.length === 0 && (
+          <Alert color="warning">Couldn't load seats...</Alert>
+        )}
+        <div className="text-center">
+          Seats taken {takenSeats}/{numberOfSeats}
         </div>
-      )}
 
-      {seats.length === 0 && (
-        <Alert color="warning">Couldn't load seats...</Alert>
-      )}
+        <Progress
+          striped
+          value={percentage}
+          color={String(progressColor)}
+          className="progress"
+        />
+      </div>
     </div>
   );
 };
